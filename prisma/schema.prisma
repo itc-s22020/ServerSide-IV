@@ -6,6 +6,37 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
+  provider = "mysql"
   url      = env("DATABASE_URL")
+}
+
+model Users {
+  id        BigInt   @id @default(autoincrement())
+  email     String   @unique @db.VarChar(256)
+  name      String?  @db.VarChar(100)
+  password  Bytes    @db.TinyBlob
+  salt      Bytes    @db.TinyBlob
+  isAdmin   Boolean? @default(false)
+  rantals   Rental[]
+}
+
+model Books {
+  id          BigInt   @id @default(autoincrement())
+  isbn13      Int      @unique
+  title       String   @db.VarChar(200)
+  author      String   @db.VarChar(100)
+  publishDate DateTime @db.Date
+  rantals     Rental[]
+}
+
+
+model Rental {
+  id             BigInt   @id @default(autoincrement())
+  bookId         BigInt?
+  userId         BigInt?
+  rentalDate     DateTime @default(now())
+  returnDeadline DateTime @default(now())
+  returnDate     DateTime
+  Books          Books?   @relation(fields: [bookId], references: [id])
+  User           Users?   @relation(fields: [userId], references: [id])
 }
