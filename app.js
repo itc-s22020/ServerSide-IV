@@ -11,6 +11,11 @@ import usersRouter from "./routes/users.js";
 
 const app = express();
 
+BigInt.prototype.toJSON = function () {
+  return this.toString()
+}
+
+
 app.use(logger("dev"));
 app.use(express.json());
 app.use(express.urlencoded({extended: false}));
@@ -27,12 +32,12 @@ app.use(passport.authenticate("session"));
 authConfig(passport);
 // cors
 app.use(cors({
-  origin: "http://localhost:3000",
+  origin: "http://localhost:3040",
   credentials: true
 }));
 
 app.use("/", indexRouter);
-app.use("/users", usersRouter);
+app.use("/user", usersRouter);
 
 // 404
 app.use((req, res, next) => {

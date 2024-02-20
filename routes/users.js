@@ -16,9 +16,10 @@ router.get("/check", (req, res, next) => {
     err.status = 401;
     throw err;
   }
-  res.json({
+  const isAdmin = req.user.isAdmin
+  res.status(200).json({
     message: "OK",
-
+    isAdmin: isAdmin
   });
 });
 
