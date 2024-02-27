@@ -8,6 +8,9 @@ import logger from "morgan";
 
 import indexRouter from "./routes/index.js";
 import usersRouter from "./routes/users.js";
+import booksRouter from "./routes/books.js";
+import adminRouter from "./routes/admin.js";
+import rentalsRouter from "./routes/rental.js";
 
 const app = express();
 
@@ -38,6 +41,11 @@ app.use(cors({
 
 app.use("/", indexRouter);
 app.use("/user", usersRouter);
+app.use("/book", booksRouter);
+app.use("/admin", adminRouter);
+app.use("/rental", rentalsRouter);
+
+
 
 // 404
 app.use((req, res, next) => {
@@ -53,16 +61,21 @@ app.use((req, res, next) => {
  */
 const errorHandler = (err, req, res, next) => {
   // デフォルトは内部サーバーエラーとしておく。
-  let message = "Internal Server Error";
+  let result = "NG (Internal Server Error)";
   if (err.status === 401) {
     // ここに来る場合は、未認証によるエラーなのでメッセージを書き換える。
-    message = "unauthenticated";
+    result = "NG (unauthenticated)";
+  }
+  else if (err.status === 403) {
+    result = "NG (you not admin)"
   } else {
     // エラーの詳細はクライアントに返さないので、ここで吐き出しておく。
     console.error(err);
   }
-  res.status(err.status || 500).json({message});
+  res.status(err.status || 500).json({result});
 };
 app.use(errorHandler);
+
+
 
 export default app;

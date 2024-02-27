@@ -37,28 +37,31 @@ const config = (passport) => {
         passwordField: "password" // password フィールドを使う
     }, async (email, password, done) => {
         try {
-            const user = await prisma.users.findUnique({ // users に修正
-                where: {email: email} // email に修正
+            const user = await prisma.users.findUnique({
+                where: { email: email }
             });
             if (!user) {
                 // ユーザがいない
-                return done(null, false, {message: "invalid username and/or password."});
+                return done(null, false, { message: "invalid username and/or password." });
             }
             const hashed = calcHash(password, user.salt);
-            if (!crypto.timingSafeEqual(user.password, hashed)) { // password に修正
-                // パスワード違う
-                return done(null, false, {message: "invalid username and/or password.."});
+            if (!crypto.timingSafeEqual(user.password, hashed)) {
+                // パスワードが違う
+                return done(null, false, { message: "invalid username and/or password." });
             }
+
+
             // OK
             return done(null, user);
         } catch (e) {
             return done(e);
         }
     }));
+
     // セッションストアに保存
     passport.serializeUser((user, done) => {
         process.nextTick(() => {
-            done(null, {id: user.id.toString, name: user.name.toString});
+            done(null, {id: user.id, name: user.name, isAdmin: user.isAdmin});
         });
     });
 
@@ -69,6 +72,7 @@ const config = (passport) => {
         });
     });
 };
+
 
 export default config;
 

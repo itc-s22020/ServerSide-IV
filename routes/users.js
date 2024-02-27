@@ -18,7 +18,7 @@ router.get("/check", (req, res, next) => {
   }
   const isAdmin = req.user.isAdmin
   res.status(200).json({
-    message: "OK",
+    result: "OK",
     isAdmin: isAdmin
   });
 });
@@ -27,16 +27,15 @@ router.get("/check", (req, res, next) => {
 /**
  * ユーザ認証
  */
-router.post("/login", (req, res, next) => {
-  passport.authenticate("local", (err, user, info) => {
-    if (!user) {
-      return res.status(401).json({ result: "NG"});
-    }
-    req.logIn(user, async (err) => {
-        const isAdmin = user.isAdmin || false;
-        return res.status(200).json({ result: "OK", isAdmin: isAdmin });
-    });
-  })(req, res, next);
+router.post("/login", passport.authenticate("local", {
+  failWithError: true // passport によるログインに失敗したらエラーを発生させる
+}), (req, res, next) => {
+  // ここに来れるなら、ログインは成功していることになる。
+  const isAdmin = req.user.isAdmin;
+  res.json({
+    result: "OK",
+    isAdmin: isAdmin
+  });
 });
 
 
@@ -46,15 +45,15 @@ router.post("/login", (req, res, next) => {
 router.post("/register", [
     check("name").notEmpty({ignore_whitespace: true}),
     check("password").notEmpty({ignore_whitespace: true}),
-    check("email").isEmail() // 追加:メールアドレス
+    check("email").isEmail()
   ], async (req, res, next) => {
     if (!validationResult(req).isEmpty()) {
       res.status(400).json({
-        message: "NG" //"username, password, and/or email is empty or invalid"
+        result: "NG (json error)" //"username, password, and/or email is empty or invalid"
       });
       return;
     }
-    const {name, password, email} = req.body; // 追加:メールアドレス
+    const {name, password, email} = req.body;
     const salt = generateSalt();
     const hashed = calcHash(password, salt);
     try {
@@ -63,30 +62,27 @@ router.post("/register", [
           name,
           password: hashed,
           salt,
-          email // 追加:メールアドレス
+          email
         }
       });
       res.status(201).json({
-        message: "created"
+        result: "OK (created)"
       });
     } catch (e) {
       switch (e.code) {
         case "P2002":
-          res.status(400).json({
-            message: "NG"  //"username is already registered"
+          res.status(409).json({
+            result: "NG (duplicate email address)"
           });
           break;
         default:
           console.error(e);
           res.status(500).json({
-            message: "NG"   //"unknown error"
+            result: "NG (unknown error)"
           });
       }
     }
   });
-
-
-
 
 /**
  * ユーザーのログアウト

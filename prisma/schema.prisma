@@ -17,16 +17,16 @@ model Users {
   password  Bytes    @db.TinyBlob
   salt      Bytes    @db.TinyBlob
   isAdmin   Boolean? @default(false)
-  rantals   Rental[]
+  rentals   Rental[]
 }
 
 model Books {
   id          BigInt   @id @default(autoincrement())
-  isbn13      Int      @unique
+  isbn13      Decimal  @db.Decimal(13, 0)
   title       String   @db.VarChar(200)
   author      String   @db.VarChar(100)
   publishDate DateTime @db.Date
-  rantals     Rental[]
+  rentals     Rental[]
 }
 
 
@@ -35,8 +35,9 @@ model Rental {
   bookId         BigInt?
   userId         BigInt?
   rentalDate     DateTime @default(now())
-  returnDeadline DateTime @default(now())
-  returnDate     DateTime
+  returnDeadline DateTime //defaultとしてnow()+7dayを実装したかったけどできなかったのでrantal.js内の処理で行う
+  returnDate     DateTime?
   Books          Books?   @relation(fields: [bookId], references: [id])
   User           Users?   @relation(fields: [userId], references: [id])
 }
+
